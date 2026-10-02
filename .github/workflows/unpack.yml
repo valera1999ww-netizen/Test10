@@ -1,0 +1,51 @@
+name: Unpack project
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Unpack ZIP
+        run: |
+          ZIP=$(find . -maxdepth 1 -type f -name "*.zip" | head -n 1)
+
+          if [ -z "$ZIP" ]; then
+            echo "ZIP file not found"
+            exit 1
+          fi
+
+          echo "Found: $ZIP"
+
+          mkdir -p /tmp/project
+          unzip -o "$ZIP" -d /tmp/project
+
+          rm -rf database handlers keyboards middlewares services utils data
+          rm -f bot.py requirements.txt render.yaml .env.example README.md
+
+          ROOT=$(find /tmp/project -maxdepth 1 -type d ! -path /tmp/project | head -n 1)
+
+          if [ -n "$ROOT" ]; then
+            cp -R "$ROOT"/. .
+          else
+            cp -R /tmp/project/. .
+          fi
+
+          rm -f ./*.zip
+
+      - name: Commit files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add .
+          git commit -m "Unpack reward bot project" || echo "Nothing to commit"
+          git push
