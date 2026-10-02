@@ -16,7 +16,7 @@ jobs:
 
       - name: Unpack ZIP
         run: |
-          ZIP=$(find . -maxdepth 1 -type f -name "*.zip" | head -n 1)
+          ZIP=$(find . -type f -name "*.zip" | head -n 1)
 
           if [ -z "$ZIP" ]; then
             echo "ZIP file not found"
